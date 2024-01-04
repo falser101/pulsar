@@ -22,7 +22,7 @@
 for %%i in ("%~dp0.") do SET "SCRIPT_PATH=%%~fi"
 set "PULSAR_HOME_DIR=%SCRIPT_PATH%\..\"
 for %%i in ("%PULSAR_HOME_DIR%.") do SET "PULSAR_HOME=%%~fi"
-call "%PULSAR_HOME%\bin\pulsar-admin-common.cmd"
+call "%PULSAR_HOME%\bin\tong-admin-common.cmd"
 if ERRORLEVEL 1 (
   exit /b 1
 )

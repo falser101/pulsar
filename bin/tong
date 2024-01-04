@@ -34,6 +34,7 @@ DEFAULT_STANDALONE_CONF=$PULSAR_HOME/conf/standalone.conf
 DEFAULT_WEBSOCKET_CONF=$PULSAR_HOME/conf/websocket.conf
 DEFAULT_LOG_CONF=$PULSAR_HOME/conf/log4j2.yaml
 DEFAULT_FUNCTIONS_LOG_CONF=$PULSAR_HOME/conf/functions_log4j2.xml
+DEFAULT_LICENSE_LOG_CONF=$PULSAR_HOME/conf/license_log.properties
 
 # functions related variables
 FUNCTIONS_HOME=$PULSAR_HOME/pulsar-functions
@@ -50,14 +51,14 @@ DEFAULT_PULSAR_TRINO_CONF=${TRINO_HOME}/conf
 
 pulsar_help() {
     cat <<EOF
-Usage: pulsar <command>
+Usage: tong <command>
 where command is one of:
 
     broker              Run a broker server
     bookie              Run a bookie server
     zookeeper           Run a zookeeper server
     configuration-store Run a configuration-store server
-    proxy               Run a pulsar proxy
+    proxy               Run a tlq-cn proxy
     websocket           Run a web socket proxy server
     functions-worker    Run a functions worker server
     sql-worker          Run a sql worker server
@@ -73,7 +74,7 @@ where command is one of:
     zookeeper-shell     Open a ZK shell client
     broker-tool         CLI to operate a specific broker
     tokens              Utility to create authentication tokens
-    version             Get the current version of pulsar
+    version             Get the current version of tlq-cn
 
     help                This help message
 
@@ -82,19 +83,20 @@ or command is the full name of a class with a defined main() method.
 Environment variables:
    FUNCTIONS_LOG_CONF            Function Log4j configuration file (default $DEFAULT_FUNCTIONS_LOG_CONF)
    PULSAR_LOG_CONF               Log4j configuration file (default $DEFAULT_LOG_CONF)
+   LICENSE_LOG_CONF              License log configuration file (default $DEFAULT_LICENSE_LOG_CONF)
    PULSAR_BROKER_CONF            Configuration file for broker (default: $DEFAULT_BROKER_CONF)
    PULSAR_BOOKKEEPER_CONF        Configuration file for bookie (default: $DEFAULT_BOOKKEEPER_CONF)
    PULSAR_ZK_CONF                Configuration file for zookeeper (default: $DEFAULT_ZK_CONF)
    PULSAR_CONFIGURATION_STORE_CONF         Configuration file for global configuration store (default: $DEFAULT_CONFIGURATION_STORE_CONF)
    PULSAR_WEBSOCKET_CONF         Configuration file for websocket proxy (default: $DEFAULT_WEBSOCKET_CONF)
-   PULSAR_PROXY_CONF             Configuration file for Pulsar proxy (default: $DEFAULT_PROXY_CONF)
+   PULSAR_PROXY_CONF             Configuration file for tlq-cn proxy (default: $DEFAULT_PROXY_CONF)
    PULSAR_WORKER_CONF            Configuration file for functions worker (default: $DEFAULT_WORKER_CONF)
    PULSAR_STANDALONE_CONF        Configuration file for standalone (default: $DEFAULT_STANDALONE_CONF)
-   PULSAR_TRINO_CONF             Configuration directory for Pulsar SQL (default: $DEFAULT_PULSAR_TRINO_CONF)
+   PULSAR_TRINO_CONF             Configuration directory for tlq-cn SQL (default: $DEFAULT_PULSAR_TRINO_CONF)
    PULSAR_EXTRA_OPTS             Extra options to be passed to the jvm
-   PULSAR_EXTRA_CLASSPATH        Add extra paths to the pulsar classpath
-   PULSAR_PID_DIR                Folder where the pulsar server PID file should be stored
-   PULSAR_STOP_TIMEOUT           Wait time before forcefully kill the pulsar server instance, if the stop is not successful
+   PULSAR_EXTRA_CLASSPATH        Add extra paths to the tlq-cn classpath
+   PULSAR_PID_DIR                Folder where the tlq-cn server PID file should be stored
+   PULSAR_STOP_TIMEOUT           Wait time before forcefully kill the tlq-cn server instance, if the stop is not successful
    PULSAR_LOG_LEVEL              Log level for the command run (default: info)
    PULSAR_LOG_ROOT_LEVEL         Log root level for the command run (default: \$PULSAR_LOG_LEVEL)
 
@@ -259,6 +261,10 @@ if [ -z "$PULSAR_LOG_CONF" ]; then
     PULSAR_LOG_CONF=$DEFAULT_LOG_CONF
 fi
 
+if [ -z "$LICENSE_LOG_CONF" ]; then
+    LICENSE_LOG_CONF=$DEFAULT_LICENSE_LOG_CONF
+fi
+
 if [ -z "$PULSAR_TRINO_CONF" ]; then
     # TODO: As PIP-200 accepted, this compatibility is not promised. Refactor when we drop this b/w compatibility.
     if [ -z "$PULSAR_PRESTO_CONF" ]; then
@@ -282,6 +288,8 @@ PULSAR_CLASSPATH="$PULSAR_JAR:$PULSAR_CLASSPATH:$PULSAR_EXTRA_CLASSPATH"
 PULSAR_CLASSPATH="`dirname $PULSAR_LOG_CONF`:$PULSAR_CLASSPATH"
 OPTS="$OPTS -Dlog4j.configurationFile=`basename $PULSAR_LOG_CONF`"
 
+OPTS="$OPTS -Djava.util.logging.config.file=$LICENSE_LOG_CONF"
+
 # Ensure we can read bigger content from ZK. (It might be
 # rarely needed when trying to list many z-nodes under a
 # directory)
@@ -291,7 +299,7 @@ OPTS="$OPTS -Dzookeeper.clientTcpKeepAlive=true"
 
 # Allow Netty to use reflection access
 OPTS="$OPTS -Dio.netty.tryReflectionSetAccessible=true"
-IS_JAVA_8=$( $JAVA -version 2>&1 | grep version | grep '"1\.8' )
+IS_JAVA_8=`$JAVA -version 2>&1 |grep version|grep '"1\.8'`
 # Start --add-opens options
 # '--add-opens' option is not supported in jdk8
 if [[ -z "$IS_JAVA_8" ]]; then
@@ -307,8 +315,6 @@ if [[ -z "$IS_JAVA_8" ]]; then
   OPTS="$OPTS --add-opens java.management/sun.management=ALL-UNNAMED"
   # MBeanStatsGenerator
   OPTS="$OPTS --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED"
-  # LinuxInfoUtils
-  OPTS="$OPTS --add-opens java.base/jdk.internal.platform=ALL-UNNAMED"
 fi
 
 OPTS="-cp $PULSAR_CLASSPATH $OPTS"

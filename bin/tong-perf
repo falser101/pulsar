@@ -86,7 +86,7 @@ add_maven_deps_to_classpath() {
 }
 pulsar_help() {
     cat <<EOF
-Usage: pulsar-perf <command>
+Usage: tong-perf <command>
 where command is one of:
     produce                 Run a producer
     consume                 Run a consumer
@@ -97,7 +97,7 @@ where command is one of:
 
     managed-ledger          Write directly on managed-ledgers
     monitor-brokers         Continuously receive broker data and/or load reports
-    simulation-client       Run a simulation server acting as a Pulsar client
+    simulation-client       Run a simulation server acting as a tlq-cn client
     simulation-controller   Run a simulation controller to give commands to servers
 
     gen-doc                 Generate documentation automatically.
@@ -110,7 +110,7 @@ Environment variables:
    PULSAR_LOG_CONF               Log4j configuration file (default $DEFAULT_LOG_CONF)
    PULSAR_CLIENT_CONF            Configuration file for client (default: $DEFAULT_CLIENT_CONF)
    PULSAR_EXTRA_OPTS             Extra options to be passed to the jvm
-   PULSAR_EXTRA_CLASSPATH        Add extra paths to the pulsar classpath
+   PULSAR_EXTRA_CLASSPATH        Add extra paths to the tlq-cn classpath
 
 These variable can also be set in conf/pulsar_env.sh
 EOF
@@ -134,7 +134,7 @@ PULSAR_CLASSPATH="$PULSAR_JAR:$PULSAR_CLASSPATH:$PULSAR_EXTRA_CLASSPATH"
 PULSAR_CLASSPATH="`dirname $PULSAR_LOG_CONF`:$PULSAR_CLASSPATH"
 OPTS="$OPTS -Dlog4j.configurationFile=`basename $PULSAR_LOG_CONF` -Djava.net.preferIPv4Stack=true"
 
-IS_JAVA_8=$( $JAVA -version 2>&1 | grep version | grep '"1\.8' )
+IS_JAVA_8=`$JAVA -version 2>&1 |grep version|grep '"1\.8'`
 # Start --add-opens options
 # '--add-opens' option is not supported in jdk8
 if [[ -z "$IS_JAVA_8" ]]; then
